@@ -132,22 +132,22 @@
     border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
     background:var(--paper-raised); overflow-x:auto;
   }
-  table{width:100%; border-collapse:collapse;}
+  table{width:100%; border-collapse:collapse; table-layout:fixed;}
   thead th{
     text-align:left; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
-    color:var(--wb-purple-deep); font-weight:600; padding:11px 14px;
+    color:var(--wb-purple-deep); font-weight:600; padding:11px 10px;
     border-bottom:1px solid var(--line); background:var(--wb-purple-soft);
-    white-space:nowrap;
+    white-space:normal; overflow-wrap:break-word;
   }
   tbody tr{border-bottom:1px solid var(--line-soft); transition:background .1s;}
   tbody tr:last-child{border-bottom:none;}
   tbody tr:hover{background:var(--wb-purple-soft); cursor:pointer;}
-  tbody td{padding:12px 14px; vertical-align:top;}
+  tbody td{padding:12px 10px; vertical-align:top; overflow-wrap:break-word; word-break:break-word;}
 
   .cat-badge{font-size:12px; font-weight:600;}
   .subcat{display:block; font-size:12px; color:var(--ink-soft); margin-top:2px;}
 
-  .diff{font-size:13px; line-height:1.45; max-width:260px;}
+  .diff{font-size:13px; line-height:1.45;}
   .diff .wrong{color:var(--red); text-decoration:line-through; text-decoration-color:#D8A8A0;}
   .diff .arrow{color:var(--ink-soft); margin:0 4px;}
   .diff .right{color:var(--green); font-weight:500;}
@@ -169,11 +169,12 @@
   .ty-Преференциальная{color:var(--slate); background:#F0F0EF;}
 
   .inline-select{
-    border:1px solid transparent; border-radius:20px; padding:4px 24px 4px 10px;
-    font-size:12px; font-weight:600; font-family:inherit; color:var(--ink-soft); background-color:#F0EFEA;
-    appearance:none; -webkit-appearance:none; cursor:pointer; max-width:170px;
+    border:1px solid transparent; border-radius:20px; padding:4px 22px 4px 8px;
+    font-size:11.5px; font-weight:600; font-family:inherit; color:var(--ink-soft); background-color:#F0EFEA;
+    appearance:none; -webkit-appearance:none; cursor:pointer; width:100%; max-width:100%;
+    text-overflow:ellipsis;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M0 0l4.5 6 4.5-6z' fill='%235B6472'/%3E%3C/svg%3E");
-    background-repeat:no-repeat; background-position:right 9px center;
+    background-repeat:no-repeat; background-position:right 7px center;
   }
   .inline-select:hover{border-color:var(--line);}
   .inline-select:disabled{opacity:.5; cursor:wait;}
@@ -194,9 +195,9 @@
   .stp-Исправление_не_требуется{color:var(--slate); background-color:#F0EFEA;}
   .stp-Убрали_с_прода{color:var(--violet); background-color:#EFEAF7;}
 
-  .comment-cell{max-width:190px; color:var(--ink-soft); font-size:12.5px;}
-  .loc-cell{max-width:150px; font-size:12.5px; color:var(--ink-soft);}
-  .assignee-cell{max-width:150px; font-size:12.5px;}
+  .comment-cell{color:var(--ink-soft); font-size:12.5px;}
+  .loc-cell{font-size:12.5px; color:var(--ink-soft);}
+  .assignee-cell{font-size:12.5px;}
   .assignee-cell .comp-link{display:block; margin-top:2px; font-size:11.5px; color:var(--wb-purple);}
 
   .row-actions{display:flex; gap:6px;}
@@ -308,6 +309,18 @@
 
   <div class="table-shell">
     <table id="bugTable">
+      <colgroup>
+        <col style="width:7%">
+        <col style="width:11%">
+        <col style="width:11%">
+        <col style="width:21%">
+        <col style="width:12%">
+        <col style="width:9%">
+        <col style="width:9%">
+        <col style="width:13%">
+        <col style="width:5%">
+        <col style="width:2%">
+      </colgroup>
       <thead>
         <tr>
           <th>Язык</th>
@@ -432,32 +445,36 @@
 <div class="overlay" id="importOverlay">
   <div class="modal">
     <div class="modal-head">
-      <h2>Импорт из таблицы</h2>
+      <h2>Импорт из Excel</h2>
       <button class="close-x" id="closeImportModal">✕</button>
     </div>
     <div class="field">
-      <label>Загрузить файл (.xlsx или .csv)</label>
+      <label>Файл (.xlsx или .csv)</label>
       <div class="shot-zone" id="importFileZone" style="cursor:pointer;">
-        <div id="importFilePlaceholder">Нажмите, чтобы выбрать файл — поле ниже заполнится само</div>
+        <div id="importFilePlaceholder">Нажмите, чтобы выбрать файл</div>
         <input type="file" accept=".xlsx,.xls,.csv" id="importFile">
       </div>
     </div>
     <div class="field">
-      <label>Язык (применится ко всем строкам ниже)</label>
+      <label>Язык (применится ко всем строкам)</label>
       <select id="importLanguage"></select>
-    </div>
-    <div class="field">
-      <label>Данные (заполнится из файла выше — или вставьте вручную сами)</label>
-      <textarea id="importText" style="min-height:180px; font-family:'JetBrains Mono',monospace; font-size:12px;" placeholder="Вставьте сюда строки, скопированные из таблицы (Ctrl+C / Ctrl+V) — колонки через Tab, как в исходном файле"></textarea>
     </div>
     <div class="field" style="display:flex; align-items:center; gap:8px; margin-bottom:0;">
       <input type="checkbox" id="importSkipHeader" checked style="width:auto;">
       <label style="text-transform:none; font-size:12.5px; margin:0; letter-spacing:0; font-weight:500;" for="importSkipHeader">Первая строка — заголовки, пропустить её</label>
     </div>
-    <p style="font-size:11.5px; color:var(--ink-soft); line-height:1.5; margin:14px 0 0;">
-      Ожидаемый порядок колонок (через Tab), как в файле «Правки»:<br>
-      <span class="mono">Раздел сайта → Подраздел → Скриншот (ссылка) → Тип ошибки → Как сейчас → Как должно быть → Пояснение к правке → Ответственный → Ссылка на компонент → Статус по Weblate → Статус по проду → Комментарии от Жанны</span>
+    <p style="margin:10px 0 0;">
+      <a href="#" id="toggleManualPaste" style="font-size:12px; text-decoration:underline; color:var(--ink-soft);">или вставить текст вручную</a>
     </p>
+    <div id="manualPasteBlock" style="display:none;">
+      <div class="field" style="margin-top:10px;">
+        <label>Данные (через Tab)</label>
+        <textarea id="importText" style="min-height:140px; font-family:'JetBrains Mono',monospace; font-size:12px;" placeholder="Вставьте сюда строки, скопированные из таблицы (Ctrl+C / Ctrl+V) — колонки через Tab, как в исходном файле"></textarea>
+      </div>
+      <p style="font-size:11.5px; color:var(--ink-soft); line-height:1.5; margin:8px 0 0;">
+        Ожидаемый порядок колонок: Раздел сайта → Подраздел → Скриншот (ссылка) → Тип ошибки → Как сейчас → Как должно быть → Пояснение к правке → Ответственный → Ссылка на компонент → Статус по Weblate → Статус по проду → Комментарии от Жанны
+      </p>
+    </div>
     <div class="modal-actions">
       <div id="importProgress" style="font-size:12.5px; color:var(--ink-soft);"></div>
       <div style="display:flex; gap:10px; margin-left:auto;">
@@ -884,6 +901,13 @@ $('#shotRemove').addEventListener('click', ()=>{ pendingShot=null; shotChanged=t
 $('#newBugBtn').addEventListener('click', openNew);
 $('#exportBtn').addEventListener('click', exportCsv);
 $('#importBtn').addEventListener('click', openImportModal);
+$('#toggleManualPaste').addEventListener('click', e=>{
+  e.preventDefault();
+  const block = $('#manualPasteBlock');
+  const show = block.style.display === 'none';
+  block.style.display = show ? 'block' : 'none';
+  e.target.textContent = show ? 'скрыть ручную вставку' : 'или вставить текст вручную';
+});
 $('#closeImportModal').addEventListener('click', closeImportModal);
 $('#importCancelBtn').addEventListener('click', closeImportModal);
 $('#importOverlay').addEventListener('click', e=>{ if(e.target.id==='importOverlay') closeImportModal(); });
@@ -1039,22 +1063,18 @@ async function runImport(){
   const language = $('#importLanguage').value;
   let rows = parseImportRows($('#importText').value);
   if($('#importSkipHeader').checked && rows.length){ rows = rows.slice(1); }
-  rows = rows.filter(r => r.section || r.wrong || r.right); // пропускаем пустые строки
+  rows = rows.filter(r => r.section || r.wrong || r.right);
 
   if(!rows.length){ showToast('Не нашла ни одной строки с данными'); return; }
 
   $('#importRunBtn').disabled = true;
   $('#importCancelBtn').disabled = true;
 
-  let ok = 0, fail = 0;
   const now = new Date().toISOString();
   let numCursor = bugs.reduce((m,b)=>Math.max(m,b.num||0),0);
-
-  for(let i=0; i<rows.length; i++){
-    $('#importProgress').textContent = `Импортирую ${i+1} из ${rows.length}…`;
-    const r = rows[i];
+  const bugObjects = rows.map(r => {
     numCursor += 1;
-    const bug = {
+    return {
       id: 'b'+Date.now()+Math.random().toString(36).slice(2,7),
       num: numCursor,
       language,
@@ -1073,14 +1093,23 @@ async function runImport(){
       createdAt: now,
       updatedAt: now,
     };
-    const saved = await upsertBugRemote(bug);
-    if(saved){ bugs.push(bug); ok++; } else { fail++; numCursor -= 1; }
+  });
+
+  const BATCH_SIZE = 6;
+  let ok = 0, fail = 0;
+  for(let i = 0; i < bugObjects.length; i += BATCH_SIZE){
+    const batch = bugObjects.slice(i, i + BATCH_SIZE);
+    $('#importProgress').textContent = `Импортирую ${Math.min(i+BATCH_SIZE, bugObjects.length)} из ${bugObjects.length}…`;
+    const results = await Promise.all(batch.map(bug => upsertBugRemote(bug)));
+    results.forEach((saved, idx) => {
+      if(saved){ bugs.push(batch[idx]); ok++; } else { fail++; }
+    });
   }
 
   $('#importRunBtn').disabled = false;
   $('#importCancelBtn').disabled = false;
   $('#importProgress').textContent = '';
-  showToast(fail ? `Импортировано ${ok} из ${rows.length}, ${fail} с ошибкой` : `Импортировано ${ok} строк`);
+  showToast(fail ? `Импортировано ${ok} из ${bugObjects.length}, ${fail} с ошибкой` : `Импортировано ${ok} строк`);
   render();
   if(!fail) closeImportModal();
 }
