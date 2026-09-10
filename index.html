@@ -530,6 +530,13 @@ function showSetupBanner(){
   document.body.insertBefore(banner, document.body.firstChild);
 }
 
+function showSetupBanner(){
+  const banner = document.createElement('div');
+  banner.style.cssText = 'background:#F7E7E4;color:#7A2020;padding:10px 16px;font-size:12.5px;text-align:center;border-bottom:1px solid #E3CFC8;';
+  banner.textContent = 'Хранилище не настроено: вставьте ссылку на Apps Script в константу SHEETS_ENDPOINT в начале файла.';
+  document.body.insertBefore(banner, document.body.firstChild);
+}
+
 let editingId = null;
 let pendingShot = null;
 let existingScreenshotUrl = '';
@@ -1029,8 +1036,10 @@ $('#importFile').addEventListener('change', e=>{
         const ws = wb.Sheets[sheetName];
         rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
       }
-      $('#importText').value = rowsToTsv_(rows);
-      $('#importFilePlaceholder').textContent = 'Загружено: «' + file.name + '» (' + rows.length + ' строк) — проверьте текст ниже и жмите «Импортировать»';
+      const tsv = rowsToTsv_(rows);
+      $('#importText').value = tsv;
+      const realCount = tsv ? tsv.split('\n').length : 0;
+      $('#importFilePlaceholder').textContent = 'Загружено: «' + file.name + '» (' + realCount + ' строк с данными) — проверьте текст ниже и жмите «Импортировать»';
     }catch(err){
       $('#importFilePlaceholder').textContent = 'Не удалось прочитать файл: ' + (err && err.message ? err.message : err);
     }
