@@ -516,12 +516,12 @@ let bugs = [];
 // Вставьте сюда ссылку на РАЗВЁРНУТЫЙ ДЛЯ ЭТОГО ТРЕКЕРА Google Apps Script (заканчивается на /exec).
 // Это должен быть отдельный Apps Script + отдельная Google-таблица под схему портала продавца —
 // использовать endpoint от трекера магазина нельзя, там другие колонки.
-const SHEETS_ENDPOINT = '';
+const SHEETS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyJm1lISKJ0dheJMPwSqkXM_CP_xyvHeXJ7F7ad_YYGdxAPa-j1TlxD1Gbd8BBoOns/exec';
 const endpointConfigured = /^https:\/\//.test(SHEETS_ENDPOINT);
 
 // Ссылка на саму Google-таблицу (для кнопки "Google-таблица" в шапке) — та же таблица,
 // к которой подключён Apps Script выше. Вставьте, когда будет готова.
-const SHEET_LINK = '';
+const SHEET_LINK = 'https://docs.google.com/spreadsheets/d/1u4v0TIjK36BOu-EZqdi7KhzNZQqlnBk4AYol6ZOLTvE';
 
 function showSetupBanner(){
   const banner = document.createElement('div');
