@@ -6,6 +6,7 @@
 <title>LQA-трекер портала продавца</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
     --paper:#F8F5FB;
@@ -435,11 +436,18 @@
       <button class="close-x" id="closeImportModal">✕</button>
     </div>
     <div class="field">
+      <label>Загрузить файл (.xlsx или .csv)</label>
+      <div class="shot-zone" id="importFileZone" style="cursor:pointer;">
+        <div id="importFilePlaceholder">Нажмите, чтобы выбрать файл — поле ниже заполнится само</div>
+        <input type="file" accept=".xlsx,.xls,.csv" id="importFile">
+      </div>
+    </div>
+    <div class="field">
       <label>Язык (применится ко всем строкам ниже)</label>
       <select id="importLanguage"></select>
     </div>
     <div class="field">
-      <label>Данные (скопируйте строки из Google-таблицы или Excel и вставьте сюда)</label>
+      <label>Данные (заполнится из файла выше — или вставьте вручную сами)</label>
       <textarea id="importText" style="min-height:180px; font-family:'JetBrains Mono',monospace; font-size:12px;" placeholder="Вставьте сюда строки, скопированные из таблицы (Ctrl+C / Ctrl+V) — колонки через Tab, как в исходном файле"></textarea>
     </div>
     <div class="field" style="display:flex; align-items:center; gap:8px; margin-bottom:0;">
@@ -959,9 +967,52 @@ function openImportModal(){
   $('#importProgress').textContent = '';
   $('#importLanguage').selectedIndex = 0;
   $('#importSkipHeader').checked = true;
+  $('#importFile').value = '';
+  $('#importFilePlaceholder').textContent = 'Нажмите, чтобы выбрать файл — поле ниже заполнится само';
   $('#importOverlay').classList.add('open');
 }
 function closeImportModal(){ $('#importOverlay').classList.remove('open'); }
+
+function rowsToTsv_(rows){
+  return rows
+    .filter(r => r.some(cell => String(cell||'').trim() !== ''))
+    .map(r => {
+      const cells = r.slice(0,12);
+      while(cells.length < 12) cells.push('');
+      return cells.map(c => String(c===undefined||c===null ? '' : c).replace(/\t/g,' ').replace(/\r?\n/g,' ')).join('\t');
+    })
+    .join('\n');
+}
+
+$('#importFileZone').addEventListener('click', e=>{ if(e.target.id !== 'importFile') $('#importFile').click(); });
+$('#importFile').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  $('#importFilePlaceholder').textContent = 'Читаю файл «' + file.name + '»…';
+
+  const isCsv = /\.csv$/i.test(file.name);
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try{
+      let rows;
+      if(isCsv){
+        const wb = XLSX.read(evt.target.result, {type:'string'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      }else{
+        const wb = XLSX.read(evt.target.result, {type:'array'});
+        const sheetName = wb.SheetNames.includes('Правки') ? 'Правки' : wb.SheetNames[0];
+        const ws = wb.Sheets[sheetName];
+        rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      }
+      $('#importText').value = rowsToTsv_(rows);
+      $('#importFilePlaceholder').textContent = 'Загружено: «' + file.name + '» (' + rows.length + ' строк) — проверьте текст ниже и жмите «Импортировать»';
+    }catch(err){
+      $('#importFilePlaceholder').textContent = 'Не удалось прочитать файл: ' + (err && err.message ? err.message : err);
+    }
+  };
+  if(isCsv) reader.readAsText(file, 'utf-8'); else reader.readAsArrayBuffer(file);
+});
 
 function parseImportRows(text){
   const lines = text.split(/\r?\n/).filter(l => l.trim().length);
