@@ -154,10 +154,10 @@
 
   .pill{
     display:inline-flex; align-items:center; gap:5px;
-    padding:3px 9px; border-radius:20px; font-size:12px; font-weight:600;
-    border:1px solid transparent; white-space:nowrap;
+    padding:3px 9px; border-radius:20px; font-size:11.5px; font-weight:600;
+    border:1px solid transparent; white-space:normal; overflow-wrap:break-word; line-height:1.3;
   }
-  .pill::before{content:''; width:6px; height:6px; border-radius:50%; background:currentColor;}
+  .pill::before{content:''; width:6px; height:6px; border-radius:50%; background:currentColor; flex-shrink:0; margin-top:2px;}
 
   /* type (тип ошибки) colors */
   .ty-Лингвистическая{color:var(--blue); background:#EAF1F5;}
@@ -270,7 +270,7 @@
 <div class="wrap">
   <header class="top">
     <div class="brand-row">
-      <div class="wb-badge">WB</div>
+      <div class="wb-badge">SP</div>
       <div>
       <div class="brand-eyebrow">Портал продавца</div>
       <h1>LQA-трекер портала продавца</h1>
@@ -310,14 +310,14 @@
   <div class="table-shell">
     <table id="bugTable">
       <colgroup>
-        <col style="width:7%">
+        <col style="width:6%">
+        <col style="width:10%">
+        <col style="width:14%">
+        <col style="width:20%">
         <col style="width:11%">
-        <col style="width:11%">
-        <col style="width:21%">
+        <col style="width:8%">
+        <col style="width:8%">
         <col style="width:12%">
-        <col style="width:9%">
-        <col style="width:9%">
-        <col style="width:13%">
         <col style="width:5%">
         <col style="width:2%">
       </colgroup>
@@ -516,19 +516,12 @@ let bugs = [];
 // Вставьте сюда ссылку на РАЗВЁРНУТЫЙ ДЛЯ ЭТОГО ТРЕКЕРА Google Apps Script (заканчивается на /exec).
 // Это должен быть отдельный Apps Script + отдельная Google-таблица под схему портала продавца —
 // использовать endpoint от трекера магазина нельзя, там другие колонки.
-const SHEETS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyJm1lISKJ0dheJMPwSqkXM_CP_xyvHeXJ7F7ad_YYGdxAPa-j1TlxD1Gbd8BBoOns/exec';
+const SHEETS_ENDPOINT = '';
 const endpointConfigured = /^https:\/\//.test(SHEETS_ENDPOINT);
 
 // Ссылка на саму Google-таблицу (для кнопки "Google-таблица" в шапке) — та же таблица,
 // к которой подключён Apps Script выше. Вставьте, когда будет готова.
-const SHEET_LINK = 'https://docs.google.com/spreadsheets/d/1u4v0TIjK36BOu-EZqdi7KhzNZQqlnBk4AYol6ZOLTvE';
-
-function showSetupBanner(){
-  const banner = document.createElement('div');
-  banner.style.cssText = 'background:#F7E7E4;color:#7A2020;padding:10px 16px;font-size:12.5px;text-align:center;border-bottom:1px solid #E3CFC8;';
-  banner.textContent = 'Хранилище не настроено: вставьте ссылку на Apps Script в константу SHEETS_ENDPOINT в начале файла.';
-  document.body.insertBefore(banner, document.body.firstChild);
-}
+const SHEET_LINK = '';
 
 function showSetupBanner(){
   const banner = document.createElement('div');
