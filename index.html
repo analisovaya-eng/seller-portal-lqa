@@ -270,7 +270,7 @@
 <div class="wrap">
   <header class="top">
     <div class="brand-row">
-      <div class="wb-badge">WB</div>
+      <div class="wb-badge">SP</div>
       <div>
       <div class="brand-eyebrow">Портал продавца</div>
       <h1>LQA-трекер портала продавца</h1>
@@ -282,7 +282,7 @@
       <button class="btn ghost small" id="sheetLinkBtn" style="display:none;"><a id="sheetLinkAnchor" href="#" target="_blank">Google-таблица</a></button>
       <button class="btn ghost small" id="importBtn">Импорт</button>
       <button class="btn ghost small" id="exportBtn">Экспорт в CSV</button>
-      <button class="btn" id="newBugBtn">+ Новый баг</button>
+      <button class="btn" id="newBugBtn">+ Новая правка</button>
     </div>
   </header>
 
@@ -310,7 +310,7 @@
   <div class="table-shell">
     <table id="bugTable">
       <colgroup>
-        <col style="width:9%">
+        <col style="width:6%">
         <col style="width:10%">
         <col style="width:14%">
         <col style="width:20%">
@@ -539,11 +539,33 @@ const $ = (sel) => document.querySelector(sel);
 const tbody = $('#tbody');
 
 /* ---------------- Storage (Google Sheets via Apps Script) ---------------- */
+/* ---------------- Safe fetch: retries once, never crashes on a non-JSON (HTML error page) response ---------------- */
+async function fetchJson_(url, options, attempt){
+  attempt = attempt || 0;
+  let res;
+  try{
+    res = await fetch(url, options);
+  }catch(networkErr){
+    if(attempt < 2) { await sleep_(600 + attempt*500); return fetchJson_(url, options, attempt+1); }
+    throw new Error('Нет сети / сервер недоступен');
+  }
+  const text = await res.text();
+  let json;
+  try{
+    json = JSON.parse(text);
+  }catch(parseErr){
+    // Apps Script иногда отдаёт HTML вместо JSON при перегрузке — пробуем ещё раз
+    if(attempt < 2){ await sleep_(600 + attempt*500); return fetchJson_(url, options, attempt+1); }
+    throw new Error('Скрипт вернул не JSON (возможно, перегружен) — попробуйте ещё раз чуть позже');
+  }
+  return json;
+}
+function sleep_(ms){ return new Promise(r => setTimeout(r, ms)); }
+
 async function loadBugs(){
   if(!endpointConfigured){ bugs = []; render(); return; }
   try{
-    const res = await fetch(SHEETS_ENDPOINT);
-    const json = await res.json();
+    const json = await fetchJson_(SHEETS_ENDPOINT);
     if(!json.ok) throw new Error(json.error || 'load failed');
     bugs = (json.bugs||[]).map(b => ({...b, num: Number(b.num)||0}));
   }catch(e){
@@ -554,12 +576,11 @@ async function loadBugs(){
 }
 async function upsertBugRemote(bug){
   try{
-    const res = await fetch(SHEETS_ENDPOINT, {
+    const json = await fetchJson_(SHEETS_ENDPOINT, {
       method: 'POST',
       headers: {'Content-Type': 'text/plain;charset=utf-8'},
       body: JSON.stringify({action:'upsert', bug})
     });
-    const json = await res.json();
     if(!json.ok) throw new Error(json.error || 'save failed');
     return true;
   }catch(e){
@@ -569,12 +590,11 @@ async function upsertBugRemote(bug){
 }
 async function deleteBugRemote(id){
   try{
-    const res = await fetch(SHEETS_ENDPOINT, {
+    const json = await fetchJson_(SHEETS_ENDPOINT, {
       method: 'POST',
       headers: {'Content-Type': 'text/plain;charset=utf-8'},
       body: JSON.stringify({action:'delete', id})
     });
-    const json = await res.json();
     if(!json.ok) throw new Error(json.error || 'delete failed');
     return true;
   }catch(e){
@@ -584,12 +604,11 @@ async function deleteBugRemote(id){
 }
 async function uploadScreenshot(id, dataUrl){
   try{
-    const res = await fetch(SHEETS_ENDPOINT, {
+    const json = await fetchJson_(SHEETS_ENDPOINT, {
       method: 'POST',
       headers: {'Content-Type': 'text/plain;charset=utf-8'},
       body: JSON.stringify({action:'screenshot', id, dataUrl})
     });
-    const json = await res.json();
     if(!json.ok) throw new Error(json.error || 'upload failed');
     return json.url;
   }catch(e){
@@ -1097,7 +1116,7 @@ async function runImport(){
     };
   });
 
-  const BATCH_SIZE = 6;
+  const BATCH_SIZE = 2;
   let ok = 0, fail = 0;
   for(let i = 0; i < bugObjects.length; i += BATCH_SIZE){
     const batch = bugObjects.slice(i, i + BATCH_SIZE);
@@ -1106,6 +1125,7 @@ async function runImport(){
     results.forEach((saved, idx) => {
       if(saved){ bugs.push(batch[idx]); ok++; } else { fail++; }
     });
+    if(i + BATCH_SIZE < bugObjects.length) await sleep_(400);
   }
 
   $('#importRunBtn').disabled = false;
